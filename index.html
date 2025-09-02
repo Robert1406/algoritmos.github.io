@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pocket Galaxy  – Celulares</title>
+  <meta name="description" content="Proyecto ejemplo: tienda virtual de celulares con carrito de compras, descuentos y cupones." />
+  <style>
+    :root { --radius: 16px; --pad: 16px; --primary: #0ea5e9; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f6f7fb; color: #0f172a; }
+    header { position: sticky; top: 0; z-index: 5; background: white; box-shadow: 0 2px 20px rgba(0,0,0,.05); }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 14px var(--pad); }
+    h1 { font-size: 1.4rem; margin: 0; }
+    h2 { margin: 0 0 8px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+    .card { background: white; border-radius: var(--radius); padding: var(--pad); box-shadow: 0 10px 30px rgba(0,0,0,.06); }
+    .card h3 { margin: 6px 0 4px; font-size: 1rem; }
+    .price { font-weight: 700; color: var(--primary); }
+    .muted { color: #475569; font-size: .9rem; }
+    button, input, select { border-radius: 12px; border: 1px solid #e5e7eb; padding: 10px 12px; font: inherit; }
+    button { cursor: pointer; }
+    .btn-primary { background: var(--primary); color: white; border: none; }
+    .btn-secondary { background: #e0f2fe; color: #0369a1; border: none; }
+    .btn-ghost { background: transparent; border-color: #e5e7eb; }
+    .row { display: flex; gap: 8px; align-items: center; }
+    .spacer { height: 10px; }
+    .cart { position: sticky; top: 70px; }
+    .cart table { width: 100%; border-collapse: collapse; }
+    .cart th, .cart td { text-align: left; padding: 8px 6px; border-bottom: 1px solid #f1f5f9; }
+    .right { text-align: right; }
+    .totals { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 12px; }
+    .badge { display: inline-block; padding: 4px 8px; border-radius: 999px; background: #dcfce7; color: #166534; font-size: .8rem; }
+    .danger { color: #b00020; }
+    footer { text-align: center; color: #64748b; padding: 20px; font-size: .9rem; }
+    .layout { display: grid; grid-template-columns: 1.15fr .85fr; gap: 16px; }
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .cart { position: static; } }
+    code { background: #f1f5f9; padding: 2px 6px; border-radius: 6px; }
+    .banner { background: var(--primary); color: white; text-align: center; padding: 12px; border-radius: var(--radius); margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap row" style="justify-content: space-between;">
+      <h1>📱Pocket Galaxy </h1>
+      <span class="muted">Carrito con descuentos y cupones</span>
+    </div>
+  </header>
+
+  <main class="wrap layout">
+    <!-- Catálogo -->
+    <section class="card">
+      <div class="banner">🔥 Ofertas de la semana en celulares 🔥</div>
+      <h2>Catálogo</h2>
+      <div class="grid" id="catalogo"></div>
+    </section>
+
+    <!-- Carrito -->
+    <aside class="card cart">
+      <h2>Carrito</h2>
+      <div class="muted" id="empty">Tu carrito está vacío.</div>
+      <table id="tablaCarrito" style="display:none">
+        <thead>
+          <tr><th>Producto</th><th class="right">Cant.</th><th class="right">Precio</th><th class="right">Subtotal</th><th></th></tr>
+        </thead>
+        <tbody id="carritoBody"></tbody>
+      </table>
+
+      <div class="spacer"></div>
+
+      <div class="row">
+        <input id="cupon" placeholder="Cupón (PROMO10, ESTUDIANTE15, FREESHIP)" />
+        <button class="btn-secondary" id="btnCupon">Aplicar</button>
+      </div>
+      <small class="muted">Reglas: <code>PROMO10</code>=-10%, <code>ESTUDIANTE15</code>=-15% (tope S/ 60), <code>FREESHIP</code>=envío gratis.</small>
+
+      <div class="spacer"></div>
+
+      <div class="totals">
+        <div class="row" style="justify-content:space-between">
+          <span>Subtotal</span><strong id="tSubtotal">S/ 0.00</strong>
+        </div>
+        <div class="row" style="justify-content:space-between">
+          <span>Descuento</span><strong id="tDescuento">- S/ 0.00</strong>
+        </div>
+        <div class="row" style="justify-content:space-between">
+          <span>Envío <small class="muted">(gratis desde S/ 150)</small></span><strong id="tEnvio">S/ 0.00</strong>
+        </div>
+        <div class="row" style="justify-content:space-between">
+          <span>IGV 18%</span><strong id="tIGV">S/ 0.00</strong>
+        </div>
+        <hr/>
+        <div class="row" style="justify-content:space-between; font-size:1.1rem">
+          <strong>Total</strong><strong id="tTotal">S/ 0.00</strong>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn-primary" id="btnComprar" style="width:100%">Finalizar compra</button>
+        <div id="msg" class="muted" style="margin-top:8px"></div>
+      </div>
+    </aside>
+  </main>
+
+  <footer>
+    Proyecto educativo: Tienda de Celulares con carrito, descuentos y cupones.
+  </footer>
+
+  <script>
+  
+    function calcularIGV(monto) {
+      return monto * 0.18;
+    }
+    console.log(calcularIGV(100));
+
+    function aplicarDescuento(monto, descuento) {
+      return monto - descuento;
+    }
+    console.log(aplicarDescuento(200, 50)); 
+
+    function calcularEnvio(monto) {
+      return monto >= 150 ? 0 : 14.90;
+    }
+    console.log(calcularEnvio(100)); 
+    console.log(calcularEnvio(200)); 
+
+    // ------- celulares -------
+    const productos = [
+      { id: 1, nombre: "iPhone 14 Pro", precio: 4899.00, imagen: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQEAd2miXGEDCUZEUwcVWgHQ_G_Iy_Var1l5Q&s" },
+      { id: 2, nombre: "Samsung Galaxy S23", precio: 3999.00, imagen: "https://home.ripley.com.pe/Attachment/WOP_5/2065309068289/2065309068289_2.jpg" },
+      { id: 3, nombre: "Xiaomi Redmi Note 12", precio: 1299.00, imagen: "https://http2.mlstatic.com/D_NQ_NP_738505-MLU69731221920_062023-O.webp" },
+      { id: 4, nombre: "Motorola Edge 40", precio: 1599.00, imagen: "https://prmoto.vtexassets.com/arquivos/ids/160075-800-auto?v=638316207644900000&width=800&height=auto&aspect=true" },
+      { id: 5, nombre: "Huawei P50 Pro", precio: 2999.00, imagen: "https://m.media-amazon.com/images/I/51tNBbfB4DL._AC_SL1000_.jpg" },
+      { id: 6, nombre: "Realme GT Neo 5", precio: 1899.00, imagen: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8-S7QJaXyo3IC_EPx6y_iy3ejoJqTAxr7qg&s" }
+    ];
+
+    // ------- Estado -------
+    const carrito = new Map();
+    let cuponAplicado = null;
+
+    // ------- UI Catálogo -------
+    const $catalogo = document.getElementById('catalogo');
+    productos.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <img src="${p.imagen}" alt="${p.nombre}" style="width:100%; height:160px; object-fit:cover; border-radius:12px">
+        <h3>${p.nombre}</h3>
+        <div class="muted">Pantalla | Cámara | Memoria</div>
+        <div class="row" style="justify-content:space-between; margin:8px 0">
+          <span class="price">S/ ${p.precio.toFixed(2)}</span>
+          <input type="number" min="1" value="1" style="width:90px" id="q-${p.id}">
+        </div>
+        <div class="row">
+          <button class="btn-primary" data-id="${p.id}">Agregar</button>
+          <button class="btn-ghost" data-id="${p.id}" data-one="1">+1</button>
+        </div>
+      `;
+      $catalogo.appendChild(card);
+    });
+
+    // ------- Eventos de Agregar -------
+    $catalogo.addEventListener('click', (e) => {
+      const id = e.target.getAttribute('data-id');
+      if (!id) return;
+      const prod = productos.find(x => x.id === Number(id));
+      if (!prod) return;
+      let qty = 1;
+      if (!e.target.getAttribute('data-one')) {
+        const input = document.getElementById('q-' + id);
+        qty = Math.max(1, Number(input.value) || 1);
+      }
+      agregarAlCarrito(prod, qty);
+    });
+
+    // ------- Lógica de Carrito -------
+    function agregarAlCarrito(prod, qty) {
+      if (qty <= 0 || !Number.isFinite(qty)) {
+        alert('Cantidad inválida.');
+        return;
+      }
+      const item = carrito.get(prod.id) || { producto: prod, cantidad: 0 };
+      item.cantidad += qty;
+      carrito.set(prod.id, item);
+      renderCarrito();
+    }
+
+    function cambiarCantidad(id, nuevaCantidad) {
+      if (nuevaCantidad <= 0) {
+        carrito.delete(id);
+      } else {
+        const item = carrito.get(id);
+        if (item) { item.cantidad = nuevaCantidad; }
+      }
+      renderCarrito();
+    }
+
+    function eliminarItem(id) {
+      carrito.delete(id);
+      renderCarrito();
+    }
+
+    function calcularTotales() {
+      let subtotal = 0;
+      carrito.forEach(({producto, cantidad}) => subtotal += producto.precio * cantidad);
+
+      let descuento = 0;
+      if (cuponAplicado === 'PROMO10') {
+        descuento = subtotal * 0.10;
+      } else if (cuponAplicado === 'ESTUDIANTE15') {
+        descuento = Math.min(subtotal * 0.15, 60);
+      }
+
+      const base = Math.max(0, subtotal - descuento);
+      const envio = (base >= 150 || cuponAplicado === 'FREESHIP') ? 0 : 14.90;
+      const igv = (base + envio) * 0.18;
+      const total = base + envio + igv;
+
+      return { subtotal, descuento, envio, igv, total };
+    }
+
+    function renderCarrito() {
+      const body = document.getElementById('carritoBody');
+      const tabla = document.getElementById('tablaCarrito');
+      const empty = document.getElementById('empty');
+
+      body.innerHTML = '';
+      if (carrito.size === 0) {
+        tabla.style.display = 'none';
+        empty.style.display = 'block';
+      } else {
+        tabla.style.display = 'table';
+        empty.style.display = 'none';
+      }
+
+      carrito.forEach(({producto, cantidad}) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${producto.nombre}</td>
+          <td class="right">
+            <div class="row" style="justify-content:flex-end">
+              <button class="btn-ghost" data-dec="${producto.id}">-</button>
+              <input type="number" min="1" value="${cantidad}" style="width:70px; text-align:right" data-qty="${producto.id}" />
+              <button class="btn-ghost" data-inc="${producto.id}">+</button>
+            </div>
+          </td>
+          <td class="right">S/ ${producto.precio.toFixed(2)}</td>
+          <td class="right">S/ ${(producto.precio * cantidad).toFixed(2)}</td>
+          <td class="right"><button class="btn-ghost" data-del="${producto.id}">🗑️</button></td>
+        `;
+        body.appendChild(tr);
+      });
+
+      const { subtotal, descuento, envio, igv, total } = calcularTotales();
+      document.getElementById('tSubtotal').textContent = 'S/ ' + subtotal.toFixed(2);
+      document.getElementById('tDescuento').textContent = '- S/ ' + descuento.toFixed(2);
+      document.getElementById('tEnvio').textContent = 'S/ ' + envio.toFixed(2);
+      document.getElementById('tIGV').textContent = 'S/ ' + igv.toFixed(2);
+      document.getElementById('tTotal').textContent = 'S/ ' + total.toFixed(2);
+    }
+
+    document.getElementById('tablaCarrito').addEventListener('click', (e) => {
+      const inc = e.target.getAttribute('data-inc');
+      const dec = e.target.getAttribute('data-dec');
+      const del = e.target.getAttribute('data-del');
+      if (inc) {
+        const item = carrito.get(Number(inc));
+        cambiarCantidad(Number(inc), (item?.cantidad || 1) + 1);
+      }
+      if (dec) {
+        const item = carrito.get(Number(dec));
+        cambiarCantidad(Number(dec), Math.max(0, (item?.cantidad || 1) - 1));
+      }
+      if (del) eliminarItem(Number(del));
+    });
+
+    document.getElementById('tablaCarrito').addEventListener('input', (e) => {
+      const id = e.target.getAttribute('data-qty');
+      if (!id) return;
+      const val = Math.max(1, Number(e.target.value) || 1);
+      cambiarCantidad(Number(id), val);
+    });
+
+    document.getElementById('btnCupon').addEventListener('click', () => {
+      const valor = document.getElementById('cupon').value.trim().toUpperCase();
+      const msg = document.getElementById('msg');
+      if (!valor) { cuponAplicado = null; msg.textContent = 'Cupón limpiado.'; renderCarrito(); return; }
+      if (['PROMO10','ESTUDIANTE15','FREESHIP'].includes(valor)) {
+        cuponAplicado = valor;
+        msg.innerHTML = `Cupón aplicado: <span class="badge">${valor}</span>`;
+        renderCarrito();
+      } else {
+        cuponAplicado = null;
+        msg.innerHTML = '<span class="danger">Cupón no válido.</span>';
+        renderCarrito();
+      }
+    });
+
+    document.getElementById('btnComprar').addEventListener('click', () => {
+      if (carrito.size === 0) { alert('Agrega productos antes de comprar.'); return; }
+      const { total } = calcularTotales();
+      alert('¡Compra realizada! Importe: S/ ' + total.toFixed(2));
+      carrito.clear();
+      cuponAplicado = null;
+      document.getElementById('cupon').value = '';
+      document.getElementById('msg').textContent = '';
+      renderCarrito();
+    });
+
+    renderCarrito();
+  </script>
+</body>
+</html>
